@@ -8,8 +8,8 @@
 #include "../type/matrix.h"
 #include "../type/shape_framebuffer.h"
 #include "../type/clock.h"
-#include "../fill/boundary_fill.h"
-#include "../fill/flood_fill.h"
+#include "../fill/boundary_filler.h"
+#include "../fill/flood_filler.h"
 using namespace std;
 
 class Shape {
@@ -24,7 +24,7 @@ protected:
 
 	BoundingBox bbox;
 	const bool squareShape;
-	bool drawBbox = false;
+	bool showBoundingBox = false;
 
 	ShapeFramebuffer fbo;
 
@@ -39,19 +39,25 @@ public:
 
 	~Shape() {}
 
+	ShapeFramebuffer* getDrawer() {
+		return &fbo;
+	}
+
 	void init(int w, int h) {
-		fbo.resize(w, h);
-		fbo.setFillFunction(boundaryFill);
+		fbo.setFillFunction(BoundaryFiller::fill);
 	}
 
 	void draw() {
-		fbo.draw(bbox);
+		fbo.draw();
 
-		if (drawBbox) bbox.draw();
 	}
 
 	void toggleBoundingBox(bool show) {
-		drawBbox = show;
+		showBoundingBox = show;
+	}
+
+	void drawBoundingBox() {
+		if (showBoundingBox) bbox.draw();
 	}
 
 	virtual bool containsPoint(Vector2 p) {
@@ -59,22 +65,14 @@ public:
 	}
 
 	unsigned int getShapeArea() {
-		return fbo.getShapeArea(bbox);
-	}
-
-	virtual void setOutlineColor(Color col) {
-		fbo.setOutlineColor(col);
-	}
-
-	virtual void setFillColor(Color col) {
-		fbo.setFillColor(col);
+		return fbo.getShapeArea();
 	}
 
 	void fitShape(Vector2 start, Vector2 end) {
 		bbox.reshape(start, end, squareShape);
 		fitBoundingBox(start, end);
 
-		fbo.clear();
+		fbo.reshape(bbox);
 		renderShape();
 	}
 
@@ -98,7 +96,7 @@ public:
 	}
 
 	void rotate(float degree) {
-		const float rad = 0.017453292519943295;
+		const float rad = M_PI / 180.0;
 
 		rot += degree * rad;
 
@@ -129,12 +127,12 @@ public:
 
 		bbox.applyTransformationMatrix(transform);
 
-		Vector2 fillCenter = transform.transformPoint(shapeCenter);
-
 		fbo.applyTransformationMatrix(transform);
+		fbo.reshape(bbox);
 
-		fbo.clear();
 		renderShape();
+
+		Vector2 fillCenter = transform.transformPoint(shapeCenter);
 		fillShape(fillCenter);
 	}
 

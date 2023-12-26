@@ -1,6 +1,7 @@
 #pragma once
 
 #include "primitive.h"
+#include "bounding_box.h"
 #include "matrix.h"
 #include "../fill/fill.h"
 #include <math.h>
@@ -20,14 +21,20 @@ private:
 
 	Matrix transform;
 
-	int w = 0;
-	int h = 0;
+	int xo = 0; //frame x
+	int yo = 0; //frame y
+	int w = 0; //frame width
+	int h = 0; //frame height
 
 	vector<char> img;
 
 	FillFunctionPtr filler = nullptr;
 private:
+
 	void setPixel(int x, int y) {
+		x = x - xo;
+		y = y - yo;
+
 		if (x >= 0 && x < w && y >= 0 && y < h)
 			img[y * w + x] = PIXEL_OUTLINE;
 	}
@@ -86,9 +93,15 @@ private:
 public:
 	ShapeFramebuffer() {}
 
-	void resize(int width, int height) {
-		w = width;
-		h = height;
+	void reshape(BoundingBox box) {
+		int xs, xe, ys, ye;
+		box.getLimits(xs, xe, ys, ye, 0);
+
+		xo = xs;
+		yo = ys;
+		w = xe - xs + 1; // + 1 to include x end too
+		h = ye - ys + 1; // + 1 to include y end too
+
 		img.resize(w * h);
 		clear();
 	}
@@ -137,8 +150,8 @@ public:
 	}
 
 	bool containsPoint(Vector2 pnt) {
-		int x = pnt.x;
-		int y = pnt.y;
+		int x = pnt.x - xo;
+		int y = pnt.y - yo;
 
 		if (x >= 0 && x < w && y >= 0 && y < h)
 			return img[y * w + x] != PIXEL_NONE;
@@ -152,23 +165,14 @@ public:
 
 	void fill(int xc, int yc) {
 		if (filler) {
-			filler(xc, yc, w, h, img.data(), PIXEL_FILL, PIXEL_OUTLINE);
+			filler(xc - xo, yc - yo, w, h, img.data(), PIXEL_FILL, PIXEL_OUTLINE);
 		}
 	}
 
-	unsigned int getShapeArea(BoundingBox box) {
-		int xs, xe, ys, ye;
-		box.getLimits(xs, xe, ys, ye);
-
-		if (xs < 0) xs = 0;
-		if (xe > w - 1) xe = w - 1;
-
-		if (ys < 0) ys = 0;
-		if (ye > h - 1) ye = h - 1;
-
+	unsigned int getShapeArea() {
 		unsigned int area = 0;
-		for (int y = ys; y <= ye; y++) {
-			for (int x = xs; x <= xe; x++) {
+		for (int y = 0; y < h; y++) {
+			for (int x = 0; x < w; x++) {
 				area += img[y * w + x] != PIXEL_NONE;
 			}
 		}
@@ -176,32 +180,19 @@ public:
 		return area;
 	}
 
-	void draw(BoundingBox box) {
-		int xs, xe, ys, ye;
-		box.getLimits(xs, xe, ys, ye);
-
-		if (xs < 0) xs = 0;
-		if (xe > w - 1) xe = w - 1;
-
-		if (ys < 0) ys = 0;
-		if (ye > h - 1) ye = h - 1;
-
+	void draw() {
 		glBegin(GL_POINTS);
-		for (int y = ys; y <= ye; y++) {
-			for (int x = xs; x <= xe; x++) {
+		for (int y = 0; y < h; y++) {
+			for (int x = 0; x < w; x++) {
 				char px = img[y * w + x];
 
-				if (px == PIXEL_OUTLINE) {
-					if (outlineColor.a != 0) {
-						Color::setColor(outlineColor);
-						Vector2::setVertex(x, y);
-					}
+				if (px == PIXEL_OUTLINE && outlineColor.a != 0) {
+					Color::setColor(outlineColor);
+					Vector2::setVertex(x + xo, y + yo);
 				}
-				else if (px == PIXEL_FILL) {
-					if (fillColor.a != 0) {
-						Color::setColor(fillColor);
-						Vector2::setVertex(x, y);
-					}
+				else if (px == PIXEL_FILL && fillColor.a != 0) {
+					Color::setColor(fillColor);
+					Vector2::setVertex(x + xo, y + yo);
 				}
 			}
 		}

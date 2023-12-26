@@ -77,9 +77,7 @@ public:
 		rightBottom = rb;
 	}
 
-	void getLimits(int &xs, int &xe, int &ys, int &ye) {
-		const int padding = 1;
-		
+	void getLimits(int &xs, int &xe, int &ys, int &ye, int padding = 1) {
 		xs = floor(l);
 		xe = ceil(r);
 		ys = floor(b);
