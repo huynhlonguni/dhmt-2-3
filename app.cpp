@@ -3,7 +3,7 @@
 Shape* App::createShape(ContextOption opt) {
 	switch (currentOption) {
 		case CTX_LINE:
-			shapes.push_back(new SLine()); break;
+			shapes.push_back(new SStraightLine()); break;
 		case CTX_TRI_ISOS_RIGHT:
 			shapes.push_back(new SIsoscelesRightTriangle()); break;
 		case CTX_TRI_EQUIL:
@@ -36,7 +36,6 @@ Shape* App::createShape(ContextOption opt) {
 			return nullptr;
 	}
 
-	shapes.back()->init(width, height);
 	return shapes.back();
 }
 
@@ -106,6 +105,8 @@ void App::setupViewport(int w, int h) {
 
 
 void App::createMenu(void (*menu_callback)(int)) {
+	if (!menu_callback) return;
+
 	int triangle = glutCreateMenu(menu_callback);
 	glutAddMenuEntry("Vuong can", App::CTX_TRI_ISOS_RIGHT);
 	glutAddMenuEntry("Deu", App::CTX_TRI_EQUIL);
@@ -179,7 +180,7 @@ void App::handleMenu(int opt) {
 				break;
 		}
 		if (activeShape) {
-			activeShape->getDrawer()->setFillColor(currentColor);
+			activeShape->setFillColor(currentColor);
 			glutPostRedisplay();
 		}
 	}
@@ -196,7 +197,8 @@ void App::handleMenu(int opt) {
 void App::handleMouseDown(int x, int y) {
 	if (leftMouseDown) {
 		if (currentAction == ACTION_DRAWING) {
-			activeShape->fitShape(prevLeftMouse, Vector2(x, y));
+			if (activeShape)
+				activeShape->fitShape(prevLeftMouse, Vector2(x, y));
 			glutPostRedisplay();
 		}
 	}

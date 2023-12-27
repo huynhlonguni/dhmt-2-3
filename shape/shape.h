@@ -28,6 +28,9 @@ protected:
 
 	ShapeFramebuffer fbo;
 
+	Color outlineColor = {0, 0, 0, 255};
+	Color fillColor = {0, 0, 0, 0};
+
 protected:
 
 	virtual void fitBoundingBox(Vector2 start, Vector2 end) = 0;
@@ -35,21 +38,22 @@ protected:
 	virtual void render(ShapeFramebuffer *drawer) = 0;
 
 public:
-	Shape(bool squareShape) : squareShape(squareShape) {}
-
-	~Shape() {}
-
-	ShapeFramebuffer* getDrawer() {
-		return &fbo;
-	}
-
-	void init(int w, int h) {
+	Shape(bool squareShape) : squareShape(squareShape) {
 		fbo.setFillFunction(BoundaryFiller::fill);
 	}
 
-	void draw() {
-		fbo.draw();
+	~Shape() {}
 
+	void draw() {
+		fbo.draw(outlineColor, fillColor);
+	}
+
+	virtual void setOutlineColor(Color col) {
+		outlineColor = col;
+	}
+
+	virtual void setFillColor(Color col) {
+		fillColor = col;
 	}
 
 	void toggleBoundingBox(bool show) {
@@ -138,7 +142,7 @@ public:
 
 	virtual void log(int i = 0, char type = 0) {
 		if (type == 0)
-			cout << "Drawn";
+			cout << "Rendered";
 		else if (type == 1)
 			cout << "Transformed";
 

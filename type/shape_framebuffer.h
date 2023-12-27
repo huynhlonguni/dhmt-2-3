@@ -16,9 +16,6 @@ private:
 		PIXEL_FILL,
 	};
 
-	Color outlineColor = {0, 0, 0, 255};
-	Color fillColor = {0, 0, 0, 0};
-
 	Matrix transform;
 
 	int xo = 0; //frame x
@@ -137,14 +134,6 @@ public:
 		}
 	}
 
-	void setOutlineColor(Color col) {
-		outlineColor = col;
-	}
-
-	void setFillColor(Color col) {
-		fillColor = col;
-	}
-
 	void clear() {
 		std::fill(img.begin(), img.end(), PIXEL_NONE);
 	}
@@ -180,7 +169,7 @@ public:
 		return area;
 	}
 
-	void draw() {
+	void draw(Color outlineColor, Color fillColor) {
 		glBegin(GL_POINTS);
 		for (int y = 0; y < h; y++) {
 			for (int x = 0; x < w; x++) {

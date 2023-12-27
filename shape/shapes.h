@@ -1,7 +1,7 @@
 #pragma once
 
 #include "shape.h"
-#include "line/line.h"
+#include "line/straight_line.h"
 #include "oval/circle.h"
 #include "oval/ellipse.h"
 #include "triangle/isosceles_right_triangle.h"

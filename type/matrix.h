@@ -86,8 +86,8 @@ public:
 	void shear(float x, float y) {
 		Matrix shear;
 
-		shear.m[1][0] = x;
-		shear.m[0][1] = y;
+		shear.m[0][1] = x;
+		shear.m[1][0] = y;
 
 		*this = multiply(*this, shear);
 	}
